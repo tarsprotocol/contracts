@@ -59,7 +59,7 @@ library LibLiFi {
         IERC20(_sourceAsset).safeApprove(_approvalAddress, _amount);
 
         (bool success, bytes memory returnData) = lifiDiamond.call{
-            value: msg.value
+            value: _value
         }(_data);
 
         if (!success) {

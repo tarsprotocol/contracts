@@ -257,5 +257,60 @@ describe("Portal LiFi integration", () => {
       await tx.wait();
 
     });
+
+
+    it("Test receiver", async function () {
+      const platform = <ITarsPlatform>this.platform;
+      let usdcBalance: BigNumber = await this.usdc.balanceOf(
+        platform.signers.deployer.address
+      );
+      console.log(usdcBalance.toString());
+
+      // GET RES TO SWAP USDC TO USDT ON OTHER CHAIN
+
+      let res = await lifiGetCrossChainQuote(
+        CHAIN_ID,
+        OTHER_CHAIN_ID,
+        USDT,
+        OTHER_CHAIN_USDC,
+        platform.contracts.TarsPortal!.address,
+        platform.signers.deployer.address,
+        "500000000" //50 USDC  => 50 USDT
+      );
+
+      console.log(res.estimate);
+      console.log("=====================================================");
+
+      await this.usdt
+        .connect(platform.signers.deployer)
+        .transfer(platform.contracts.TarsPortal!.address, res.estimate.fromAmount)
+
+      await platform.signers.deployer.sendTransaction({
+        to: platform.contracts.TarsPortal!.address,
+        value: ethers.utils.parseEther("1.0"),
+      });
+      
+      let usdtBal = await this.usdt.balanceOf(platform.signers.deployer.address)
+      let usdtApprove = await this.usdt.allowance(platform.signers.deployer.address, platform.contracts.TarsPortal!.address)
+      console.log(res)
+      console.log("=================== usdtBal: ", usdtBal.toString())
+      console.log("=================== usdtApprove: ", usdtApprove.toString())
+      console.log("=================== usdtToTransfer: ", res.estimate.fromAmount)
+
+      let tx = await platform.contracts
+        .TarsPortal!.connect(platform.signers.deployer)
+        .lifiBridgeReceiver(
+          USDT,
+          platform.signers.deployer.address,
+          res.estimate.approvalAddress,
+          res.estimate.fromAmount,
+          res.transactionRequest?.value!,
+          res.transactionRequest?.data || "0x",
+        )
+
+
+      await tx.wait();
+
+    });
   });
 });
