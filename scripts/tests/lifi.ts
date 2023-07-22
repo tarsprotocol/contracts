@@ -27,7 +27,6 @@ const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 const LIFI_DIAMOND = "0x9b11bc9FAc17c058CAB6286b0c785bE6a65492EF";
 
 describe("Portal LiFi integration", () => {
-  //console.log("===");
   before(async function () {
     const { deployer, treasury, user } = await ethers.getNamedSigners();
     this.deployer = deployer;
@@ -35,7 +34,6 @@ describe("Portal LiFi integration", () => {
     this.user = user;
 
     await deployments.fixture(["Portal"]);
-    //console.log("=================");
 
     let platform = await getPortal(["Portal"]);
 
@@ -85,10 +83,7 @@ describe("Portal LiFi integration", () => {
   describe("Configuration setup", () => {
     it("Only owner can setup the LiFi diamond address", async function () {
       const platform = <ITarsPlatform>this.platform;
-      //console.log(platform);
-      /*       
-      console.log("+++++++++++++++++++++++++++++++++++++");
- */
+
       await expect(
         platform.contracts
           .TarsPortal!.connect(this.user)
@@ -96,7 +91,7 @@ describe("Portal LiFi integration", () => {
       ).to.be.revertedWith("Only owner is allowed to perform this action");
 
       await platform.contracts
-        .TarsPortal!.connect(this.treasury)
+        .TarsPortal!.connect(this.deployer)
         .setLiFiDiamond(LIFI_DIAMOND);
     });
   });
@@ -113,7 +108,6 @@ describe("Portal LiFi integration", () => {
         "1000000000" //100 USDT  => 100 USDC
       );
 
-      //console.log(res);
       await this.usdt
         .connect(platform.signers.deployer)
         .approve(platform.contracts.TarsPortal!.address, "1000000000");
@@ -128,13 +122,11 @@ describe("Portal LiFi integration", () => {
           res.transactionRequest!.data!
         );
       await tx.wait();
-      //console.log(")))))))))))))))))", res.transactionRequest!.data!);
 
       let usdcBalance: BigNumber = await this.usdc.balanceOf(
         platform.signers.deployer.address
       );
 
-      console.log(usdcBalance);
       assert(usdcBalance.gt(res.estimate.toAmountMin));
 
       this.beforeUSDCBalance = this.beforeUSDCBalance.add(
@@ -146,14 +138,6 @@ describe("Portal LiFi integration", () => {
   describe("Crosschain swaps", () => {
     it("Execute asset to asset swap", async function () {
       const platform = <ITarsPlatform>this.platform;
-
-
-
-      let currentBal = await this.usdt.balanceOf(platform.signers.deployer.address)
-      let allowance = await this.usdt.allowance(platform.signers.deployer.address, platform.contracts.TarsPortal!.address)
-      console.log("========================== currentBal: ", currentBal.toString())
-      console.log("========================== approved: ", allowance.toString())
-
 
       await this.usdt
         .connect(platform.signers.deployer)
@@ -168,8 +152,6 @@ describe("Portal LiFi integration", () => {
         platform.signers.deployer.address,
         "1000000000" //1000 USDT  => 1000 USDC
       );
-
-      console.log("========================== fromAmount lifi: ", res.estimate.fromAmount)
 
       let tx = await platform.contracts
         .TarsPortal!.connect(platform.signers.deployer)
@@ -194,9 +176,6 @@ describe("Portal LiFi integration", () => {
       let usdcBalance: BigNumber = await this.usdc.balanceOf(
         platform.signers.deployer.address
       );
-      console.log(usdcBalance.toString());
-
-      // GET RES TO SWAP USDC TO USDT ON OTHER CHAIN
 
       let resForOtherChain = await lifiGetCrossChainQuote(
         OTHER_CHAIN_ID,
@@ -207,12 +186,6 @@ describe("Portal LiFi integration", () => {
         platform.signers.deployer.address,
         "500000000" //50 USDC  => 50 USDT
       );
-
-      console.log(resForOtherChain.estimate);
-      console.log("=====================================================");
-
-      // BRIDGE USDC TO OTHER CHAIN WITH DATA PREVIOUSLY FETCHED
-
 
       let res = await lifiGetCrossChainWithExecQuote(
         CHAIN_ID,
@@ -237,10 +210,6 @@ describe("Portal LiFi integration", () => {
       
       let usdcBal = await this.usdc.balanceOf(platform.signers.deployer.address)
       let usdcApprove = await this.usdc.allowance(platform.signers.deployer.address, platform.contracts.TarsPortal!.address)
-      console.log(res)
-      console.log("=================== usdcBal: ", usdcBal.toString())
-      console.log("=================== usdcApprove: ", usdcApprove.toString())
-      console.log("=================== usdcToTransfer: ", res.estimate.fromAmount)
 
       let tx = await platform.contracts
         .TarsPortal!.connect(platform.signers.deployer)
@@ -264,7 +233,6 @@ describe("Portal LiFi integration", () => {
       let usdcBalance: BigNumber = await this.usdc.balanceOf(
         platform.signers.deployer.address
       );
-      console.log(usdcBalance.toString());
 
       // GET RES TO SWAP USDC TO USDT ON OTHER CHAIN
 
@@ -278,9 +246,6 @@ describe("Portal LiFi integration", () => {
         "500000000" //50 USDC  => 50 USDT
       );
 
-      console.log(res.estimate);
-      console.log("=====================================================");
-
       await this.usdt
         .connect(platform.signers.deployer)
         .transfer(platform.contracts.TarsPortal!.address, res.estimate.fromAmount)
@@ -292,10 +257,6 @@ describe("Portal LiFi integration", () => {
       
       let usdtBal = await this.usdt.balanceOf(platform.signers.deployer.address)
       let usdtApprove = await this.usdt.allowance(platform.signers.deployer.address, platform.contracts.TarsPortal!.address)
-      console.log(res)
-      console.log("=================== usdtBal: ", usdtBal.toString())
-      console.log("=================== usdtApprove: ", usdtApprove.toString())
-      console.log("=================== usdtToTransfer: ", res.estimate.fromAmount)
 
       let tx = await platform.contracts
         .TarsPortal!.connect(platform.signers.deployer)

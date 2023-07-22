@@ -27,41 +27,6 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
         emit LiFiSetDiamond(_diamond);
     }
 
-    /* 
-    function swap(
-        SwapIntegration _route,
-        address _approvalAddress,
-        address _sourceAsset,
-        address _targetAsset,
-        uint256 _amount,
-        bytes calldata _data
-    ) external payable {
-        IERC20(_sourceAsset).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _amount
-        );
-
-        address sourceAsset = _sourceAsset;
-        uint256 sourceAssetInAmount = _amount;
-
-        console.log("INSIDE");
-
-        if (_route == SwapIntegration.LIFI) {
-            LibLiFi.execute(
-                sourceAsset,
-                _approvalAddress,
-                sourceAssetInAmount,
-                _data
-            );
-        }
-
-        uint256 remainingBalance = IERC20(sourceAsset).balanceOf(address(this));
-        console.log("remainingBalance", remainingBalance);
-        if (remainingBalance > 0) {
-            IERC20(sourceAsset).safeTransfer(msg.sender, remainingBalance);
-        }
-    } */
     function swap(
         SwapIntegration _route,
         address _approvalAddress,
@@ -117,7 +82,6 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
                 _data
             );
         }
-        console.log("AAAAAAAAAAAAAAAAAAAAAA");
 
         uint256 remainingBalance = IERC20(_sourceAsset).balanceOf(address(this));
         if (remainingBalance > 0) {
@@ -146,6 +110,15 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
 
         uint256 remainingBalance = IERC20(_tokenReceived).balanceOf(
             address(this)
+        );
+    }
+
+    function emergencyWithdraw(
+        address _token
+    ) external onlyOwner {
+        IERC20(_token).safeTransfer(
+            msg.sender,
+            IERC20(_token).balanceOf(address(this))
         );
     }
 }

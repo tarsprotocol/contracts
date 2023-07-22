@@ -13,7 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await diamond.deploy("TarsPortalDiamond", {
     from: deployer, // this need to be the deployer for upgrade
-    owner: treasury,
+    owner: deployer,
     facets: [
       //plugin already handle OwnershipFacet DiamondCutFacet DiamondLoupeFacet
       //  "TarsPortalAxelarFacet",
@@ -26,7 +26,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     },
   });
 
-  const LiFiPortal = await deployments.get("LiFiPortalSwapRouterFacet");
+  const LiFiPortal = await deployments.get("TarsPortalDiamond");
   const LiFiPortalContract = ILiFiPortalSwapRouter__factory.connect(
     LiFiPortal.address,
     ethers.provider
@@ -40,11 +40,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   ); */
   let liFiDiamond = await LiFiPortalContract.lifiDiamond();
 
+  
   if (liFiDiamond != LiFiDiamond)
     await execute(
       "TarsPortalDiamond",
       {
-        from: treasury,
+        from: deployer,
         log: true,
       },
       "setLiFiDiamond",

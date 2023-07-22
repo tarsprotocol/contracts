@@ -22,48 +22,25 @@ const config: HardhatUserConfig = {
       live: false,
       saveDeployments: false,
     },
-    goerli: {
-      url: "https://eth-goerli.g.alchemy.com/v2/sgaUcLMlmHdg9-vzH47QUgLALCXwj4wV",
-      chainId: 5,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
     polygon: {
-      url: "https://polygon-rpc.com",
+      url: "https://red-flashy-water.matic.discover.quiknode.pro/1ecd71b64355720c20f400cc4c6e6b91428d14c0/",
       chainId: 137,
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.DEPLOYER_PK !== undefined ? [process.env.DEPLOYER_PK] : [],
     },
-    fantom: {
-      url: "https://rpc.fantom.network",
-      chainId: 250,
+    celo: {
+      url: "https://forno.celo.org",
+      chainId: 42220,
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.DEPLOYER_PK !== undefined ? [process.env.DEPLOYER_PK] : [],
     },
-    avax: {
-      url: "https://api.avax.network/ext/bc/C/rpc",
-      chainId: 43114,
+    gnosis: {
+      url: "https://rpc.gnosischain.com",
+      chainId: 100,
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.DEPLOYER_PK !== undefined ? [process.env.DEPLOYER_PK] : [],
     },
-    optimism: {
-      url: "https://mainnet.optimism.io",
-      chainId: 10,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    mainnet: {
-      url: "https://ethereum.publicnode.com",
-      chainId: 1,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    arbitrum: {
-      url: "https://arb1.arbitrum.io/rpc",
-      chainId: 42161,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
+  
   },
 
   namedAccounts: {
