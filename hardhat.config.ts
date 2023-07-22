@@ -9,6 +9,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-gas-reporter";
 //import "hardhat-contract-sizer";
 import "hardhat-deploy";
+import "./scripts/tasks"
 //import "hardhat-docgen";
 
 const config: HardhatUserConfig = {
@@ -31,6 +32,12 @@ const config: HardhatUserConfig = {
     celo: {
       url: "https://forno.celo.org",
       chainId: 42220,
+      accounts:
+        process.env.DEPLOYER_PK !== undefined ? [process.env.DEPLOYER_PK] : [],
+    },
+    lineaTestnet: {
+      url: "https://linea-goerli.infura.io/v3/a0a965b8e76b4e77abf745a72002d7de",
+      chainId: 59140,
       accounts:
         process.env.DEPLOYER_PK !== undefined ? [process.env.DEPLOYER_PK] : [],
     },
