@@ -1,6 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ITarsPortal, ITarsPortal__factory } from "../../typechain-types";
 import { ethers, deployments, network, getNamedAccounts } from "hardhat";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 interface ITarsPlatform {
   signers: { [key: string]: SignerWithAddress };
@@ -13,14 +14,14 @@ interface ITarsPortalContracts {
   TarsPortal?: ITarsPortal;
 }
 
-async function getPortal(tags: string[]): Promise<ITarsPlatform> {
+async function getPortal(hre: HardhatRuntimeEnvironment, tags: string[]): Promise<ITarsPlatform> {
   let platform: ITarsPlatform = {
     contracts: {},
-    signers: await ethers.getNamedSigners(),
+    signers: await hre.ethers.getNamedSigners(),
   };
 
   if (tags.indexOf("Portal") >= 0) {
-    const TarsPortal = await deployments.get("TarsPortalDiamond");
+    const TarsPortal = await hre.deployments.get("TarsPortalDiamond");
 
     /*     platform.contracts.TarsPortal = await ethers.getContractAt(
       "ITarsPortal",
