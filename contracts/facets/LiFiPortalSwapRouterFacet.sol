@@ -106,7 +106,6 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
             address(this),
             _amount
         );
-
         address sourceAsset = _sourceAsset;
         uint256 sourceAssetInAmount = _amount;
 
@@ -118,6 +117,7 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
                 _data
             );
         }
+        console.log("AAAAAAAAAAAAAAAAAAAAAA");
 
         uint256 remainingBalance = IERC20(sourceAsset).balanceOf(address(this));
         if (remainingBalance > 0) {
