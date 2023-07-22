@@ -1,40 +1,63 @@
-import {HardhatRuntimeEnvironment} from 'hardhat/types';
-import {DeployFunction} from 'hardhat-deploy/types';
-import { IAxelarPortal__factory } from "../../typechain-types"
-import { ethers } from 'hardhat';
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployFunction } from "hardhat-deploy/types";
+import { ILiFiPortalSwapRouter__factory } from "../../typechain-types";
+import { ethers, network } from "hardhat";
 
-const AXELAR_GATEWAY = "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE"
+const LiFiDiamond = "0x9b11bc9FAc17c058CAB6286b0c785bE6a65492EF";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const {deployments, getNamedAccounts} = hre;
+  const { deployments, getNamedAccounts } = hre;
 
-  const {diamond, execute} = deployments;
-  const {deployer, treasury} = await getNamedAccounts();
+  const { diamond, execute } = deployments;
+  const { deployer, treasury } = await getNamedAccounts();
 
-  await diamond.deploy('TarsPortalDiamond', {
+  await diamond.deploy("TarsPortalDiamond", {
     from: deployer, // this need to be the deployer for upgrade
     owner: treasury,
-    facets: [ //plugin already handle OwnershipFacet DiamondCutFacet DiamondLoupeFacet
-        'TarsPortalAxelarFacet',
+    facets: [
+      //plugin already handle OwnershipFacet DiamondCutFacet DiamondLoupeFacet
+      //  "TarsPortalAxelarFacet",
+      "LiFiPortalSwapRouterFacet",
     ],
     execute: {
-        contract: 'TarsPortalInit',
-        methodName: 'init',
-        args: []
-    }
+      contract: "TarsPortalInit",
+      methodName: "init",
+      args: [],
+    },
   });
 
-  const AxelarPortal = await deployments.get('TarsPortalDiamond')
-  const AxelarPortalContract = IAxelarPortal__factory.connect(AxelarPortal.address, ethers.provider)
-  let axelatGateway = await AxelarPortalContract.axelatGateway()
+  const LiFiPortal = await deployments.get("LiFiPortalSwapRouterFacet");
+  const LiFiPortalContract = ILiFiPortalSwapRouter__factory.connect(
+    LiFiPortal.address,
+    ethers.provider
+  );
 
-  if(axelatGateway != AXELAR_GATEWAY)
-    await execute('TarsPortalDiamond', {
-      from: treasury, log: true
-    }, 'setAxelarGateway', AXELAR_GATEWAY)
+  console.log("!!!!!============!!!!!!");
+  /* 
+  const LiFiPortalContract = await ethers.getContractAt(
+    "ILiFiPortalSwapRouter",
+    LiFiPortal.address,
+    await ethers.getNameSigner()
+  ); */
+  console.log("!!!!!!!!!!!");
+  let liFiDiamond = await LiFiPortalContract.lifiDiamond();
+  console.log(liFiDiamond);
+
+  if (liFiDiamond != LiFiDiamond)
+    await execute(
+      "TarsPortalDiamond",
+      {
+        from: treasury,
+        log: true,
+      },
+      "setLiFiDiamond",
+      LiFiDiamond
+    );
+
+  console.log(liFiDiamond);
 };
 
 export default func;
 
-func.tags = ['Portal'];
+func.tags = ["Portal"];
 func.dependencies = [];
