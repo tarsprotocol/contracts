@@ -84,6 +84,7 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
                 sourceAsset,
                 _approvalAddress,
                 sourceAssetInAmount,
+                0,
                 _data
             );
         }
@@ -106,22 +107,21 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
             address(this),
             _amount
         );
-        address sourceAsset = _sourceAsset;
-        uint256 sourceAssetInAmount = _amount;
 
         if (_route == SwapIntegration.LIFI) {
             LibLiFi.execute(
-                sourceAsset,
+                _sourceAsset,
                 _approvalAddress,
-                sourceAssetInAmount,
+                _amount,
+                msg.value,
                 _data
             );
         }
         console.log("AAAAAAAAAAAAAAAAAAAAAA");
 
-        uint256 remainingBalance = IERC20(sourceAsset).balanceOf(address(this));
+        uint256 remainingBalance = IERC20(_sourceAsset).balanceOf(address(this));
         if (remainingBalance > 0) {
-            IERC20(sourceAsset).safeTransfer(msg.sender, remainingBalance);
+            IERC20(_sourceAsset).safeTransfer(msg.sender, remainingBalance);
         }
     }
 
@@ -130,6 +130,7 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
         address _sender,
         address _approvalAddress,
         uint256 _sourceAssetInAmount,
+        uint256 _value,
         bytes calldata _data
     ) external {
         // Access control?
@@ -139,12 +140,12 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
             _tokenReceived,
             _approvalAddress,
             _sourceAssetInAmount,
+            _value,
             _data
         );
 
         uint256 remainingBalance = IERC20(_tokenReceived).balanceOf(
             address(this)
         );
-        console.log("SHOULD BE 0", remainingBalance);
     }
 }

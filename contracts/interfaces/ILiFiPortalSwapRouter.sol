@@ -38,6 +38,7 @@ interface ILiFiPortalSwapRouter {
         address _sender,
         address _approvalAddress,
         uint256 _sourceAssetInAmount,
+        uint256 _value,
         bytes calldata _data
     ) external;
 }

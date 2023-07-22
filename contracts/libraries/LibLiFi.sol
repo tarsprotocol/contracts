@@ -50,6 +50,7 @@ library LibLiFi {
         address _sourceAsset,
         address _approvalAddress,
         uint256 _amount,
+        uint256 _value,
         bytes calldata _data
     ) internal {
         LiFiStorage storage store = lifiStorage();
@@ -60,7 +61,6 @@ library LibLiFi {
         (bool success, bytes memory returnData) = lifiDiamond.call{
             value: msg.value
         }(_data);
-        console.log("_approvalAddress", _approvalAddress);
 
         if (!success) {
             if (returnData.length == 0) revert UnknownLiFiError();
@@ -68,7 +68,6 @@ library LibLiFi {
                 revert(add(32, returnData), mload(returnData))
             }
         }
-        console.log("AAAAAAAAAAAAAAAAAAAAAA");
 
         IERC20(_sourceAsset).safeApprove(lifiDiamond, 0);
         emit LiFiExecutionResult(success, returnData);

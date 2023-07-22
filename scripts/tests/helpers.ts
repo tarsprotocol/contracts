@@ -69,10 +69,11 @@ export const lifiGetCrossChainWithExecQuote = async (
   toContract: string,
   amount: string,
   approvalAddress: string,
+  value: string,
   data: BytesLike
 ): Promise<LifiStep> => {
   const LIFI_FACET_ABI = [
-    "function lifiBridgeReceiver(address _tokenReceived, address _sender, address _approvalAddress, uint256 _sourceAssetInAmount, bytes calldata _data) external", // UPDATE!!
+    "function lifiBridgeReceiver(address _tokenReceived, address _sender, address _approvalAddress, uint256 _sourceAssetInAmount, uint256 _value, bytes calldata _data) external", // UPDATE!!
   ];
 
   //  "function lifiBridgeReceiver(address _tokenReceived, address _sender, address _approvalAddress, uint256 _sourceAssetInAmount, bytes calldata _data) external"
@@ -85,6 +86,7 @@ export const lifiGetCrossChainWithExecQuote = async (
     toAddress,
     approvalAddress,
     amount,
+    value,
     data
   );
 
