@@ -12,8 +12,8 @@ interface ILiFiPortalSwapRouter {
 
     function swap(
         SwapIntegration _route,
-        address _sourceAsset,
         address _approvalAddress,
+        address _sourceAsset,
         address _targetAsset,
         uint256 _amount,
         bytes calldata _data
@@ -36,6 +36,8 @@ interface ILiFiPortalSwapRouter {
     function lifiBridgeReceiver(
         address _tokenReceived,
         address _sender,
-        address _toVault
+        address _approvalAddress,
+        uint256 _sourceAssetInAmount,
+        bytes calldata _data
     ) external;
 }

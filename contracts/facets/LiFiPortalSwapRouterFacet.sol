@@ -27,6 +27,7 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
         emit LiFiSetDiamond(_diamond);
     }
 
+    /* 
     function swap(
         SwapIntegration _route,
         address _approvalAddress,
@@ -60,6 +61,35 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
         if (remainingBalance > 0) {
             IERC20(sourceAsset).safeTransfer(msg.sender, remainingBalance);
         }
+    } */
+    function swap(
+        SwapIntegration _route,
+        address _approvalAddress,
+        address _sourceAsset,
+        address _targetAsset,
+        uint256 _amount,
+        bytes calldata _data
+    ) external payable {
+        IERC20(_sourceAsset).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
+
+        address sourceAsset = _sourceAsset;
+        uint256 sourceAssetInAmount = _amount;
+
+        if (_route == SwapIntegration.LIFI) {
+            LibLiFi.execute(
+                sourceAsset,
+                _approvalAddress,
+                sourceAssetInAmount,
+                _data
+            );
+        }
+
+        uint256 assetOutAmount = IERC20(_targetAsset).balanceOf(address(this));
+        IERC20(_targetAsset).safeTransfer(msg.sender, assetOutAmount);
     }
 
     function swapAndBridge(
@@ -79,6 +109,7 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
 
         address sourceAsset = _sourceAsset;
         uint256 sourceAssetInAmount = _amount;
+
         if (_route == SwapIntegration.LIFI) {
             LibLiFi.execute(
                 sourceAsset,
@@ -97,16 +128,23 @@ contract LiFiPortalSwapRouterFacet is ILiFiPortalSwapRouter, UsingDiamondOwner {
     function lifiBridgeReceiver(
         address _tokenReceived,
         address _sender,
-        address _toVault
+        address _approvalAddress,
+        uint256 _sourceAssetInAmount,
+        bytes calldata _data
     ) external {
-        IERC20 underlying = IERC20(_tokenReceived);
-        uint256 assetOutAmount = underlying.balanceOf(address(this));
-        underlying.safeIncreaseAllowance(_toVault, assetOutAmount);
+        // Access control?
+        //swap and bridge back with the data passed !!
 
-        uint256 shares = IERC4626(_toVault).deposit(
-            assetOutAmount,
+        LibLiFi.execute(
+            _tokenReceived,
+            _approvalAddress,
+            _sourceAssetInAmount,
+            _data
+        );
+
+        uint256 remainingBalance = IERC20(_tokenReceived).balanceOf(
             address(this)
         );
-        IERC4626(_toVault).transfer(_sender, shares);
+        console.log("SHOULD BE 0", remainingBalance);
     }
 }

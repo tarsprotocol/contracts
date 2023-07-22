@@ -32,16 +32,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     ethers.provider
   );
 
-  console.log("!!!!!============!!!!!!");
   /* 
   const LiFiPortalContract = await ethers.getContractAt(
     "ILiFiPortalSwapRouter",
     LiFiPortal.address,
     await ethers.getNameSigner()
   ); */
-  console.log("!!!!!!!!!!!");
   let liFiDiamond = await LiFiPortalContract.lifiDiamond();
-  console.log(liFiDiamond);
 
   if (liFiDiamond != LiFiDiamond)
     await execute(
@@ -53,8 +50,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       "setLiFiDiamond",
       LiFiDiamond
     );
-
-  console.log(liFiDiamond);
 };
 
 export default func;

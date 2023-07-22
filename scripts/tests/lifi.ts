@@ -27,7 +27,7 @@ const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 const LIFI_DIAMOND = "0x9b11bc9FAc17c058CAB6286b0c785bE6a65492EF";
 
 describe("Portal LiFi integration", () => {
-  console.log("===");
+  //console.log("===");
   before(async function () {
     const { deployer, treasury, user } = await ethers.getNamedSigners();
     this.deployer = deployer;
@@ -35,14 +35,14 @@ describe("Portal LiFi integration", () => {
     this.user = user;
 
     await deployments.fixture(["Portal"]);
-    console.log("=================");
+    //console.log("=================");
 
     let platform = await getPortal(["Portal"]);
 
     this.platform = platform;
 
     /**
-     * Mint USDC with the master minter
+     * Mint USDT with the master minter
      */
     await network.provider.request({
       method: "hardhat_impersonateAccount",
@@ -112,9 +112,6 @@ describe("Portal LiFi integration", () => {
       await platform.contracts
         .TarsPortal!.connect(this.treasury)
         .setLiFiDiamond(LIFI_DIAMOND);
-
-      console.log(await platform.contracts.TarsPortal!.lifiDiamond());
-      console.log(platform.contracts.TarsPortal);
     });
   });
 
@@ -127,27 +124,25 @@ describe("Portal LiFi integration", () => {
         USDT,
         USDC,
         platform.contracts.TarsPortal!.address,
-        "10000000" //10 USDT  => 10 USDC
+        "100000000" //100 USDT  => 100 USDC
       );
 
-      console.log(res);
+      //console.log(res);
       await this.usdt
         .connect(platform.signers.deployer)
-        .approve(platform.contracts.TarsPortal!.address, "10000000");
+        .approve(platform.contracts.TarsPortal!.address, "100000000");
       let tx = await platform.contracts
         .TarsPortal!.connect(platform.signers.deployer)
-        .swapAndBridge(
+        .swap(
           0,
-          USDT,
           res.estimate.approvalAddress,
+          USDT,
           USDC,
-          10000000,
-          // "0x",
-          0,
+          100000000,
           res.transactionRequest!.data!
         );
       await tx.wait();
-      console.log(")))))))))))))))))");
+      //console.log(")))))))))))))))))", res.transactionRequest!.data!);
 
       let usdcBalance: BigNumber = await this.usdc.balanceOf(
         platform.signers.deployer.address
@@ -160,419 +155,108 @@ describe("Portal LiFi integration", () => {
         res.estimate.toAmountMin
       );
     });
-
-    /*     it("Execute asset to asset swap with permit", async function () {
-      const platform = <ITarsPlatform>this.platform;
-
-      let usdcAmount = await this.usdc.balanceOf(
-        platform.signers.deployer.address
-      );
-
-      let deadline = BigNumber.from(Date.now() + 3600);
-      let permitSig = await getPermitSignature(
-        platform.signers.deployer,
-        this.usdc,
-        platform.contracts.StrategPortal!.address,
-        usdcAmount,
-        deadline,
-        { chainId: 1, version: "2" }
-      );
-
-      const abiCoder = new ethers.utils.AbiCoder();
-      let permitParameters = abiCoder.encode(
-        ["tuple(uint256 deadline, uint8 v, bytes32 r, bytes32 s)"],
-        [
-          {
-            deadline,
-            v: permitSig.v,
-            r: permitSig.r,
-            s: permitSig.s,
-          },
-        ]
-      );
-
-      let res = await lifiGetSameChainQuote(
-        CHAIN_ID,
-        USDC,
-        USDT,
-        platform.contracts.StrategPortal!.address,
-        usdcAmount
-      );
-
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swap(
-          false,
-          false,
-          0,
-          res.estimate.approvalAddress,
-          USDC,
-          USDT,
-          usdcAmount,
-          permitParameters,
-          res.transactionRequest!.data!
-        );
-      await tx.wait();
-
-      let usdcBalance: BigNumber = await this.usdc.balanceOf(
-        platform.signers.deployer.address
-      );
-      assert(usdcBalance.eq(0));
-
-      this.beforeUSDCBalance = usdcBalance;
-    }); */
-
-    /*     it("Execute vault to asset swap", async function () {
-      const platform = <ILiFiPortalSwapRouter>this.platform;
-
-      await this.usdt
-        .connect(platform.signers.deployer)
-        .approve(this.vusdt.address, "10000000");
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .deposit("10000000", platform.signers.deployer.address);
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .approve(platform.contracts.StrategPortal!.address, "10000000");
-
-      let res = await lifiGetSameChainQuote(
-        CHAIN_ID,
-        USDT,
-        USDC,
-        platform.contracts.StrategPortal!.address,
-        "10000000" //10 USDT  => 10 USDC
-      );
-
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swap(
-          true,
-          false,
-          0,
-          res.estimate.approvalAddress,
-          this.vusdt.address,
-          USDC,
-          10000000,
-          "0x",
-          res.transactionRequest!.data!
-        );
-      await tx.wait();
-
-      let usdcBalance: BigNumber = await this.usdc.balanceOf(
-        platform.signers.deployer.address
-      );
-
-      assert(
-        usdcBalance.sub(this.beforeUSDCBalance).gt(res.estimate.toAmountMin)
-      );
-    });
-
-    it("Execute vault to vault swap", async function () {
-      const platform = <ILiFiPortalSwapRouter>this.platform;
-
-      await this.usdt
-        .connect(platform.signers.deployer)
-        .approve(this.vusdt.address, "10000000");
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .deposit("10000000", platform.signers.deployer.address);
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .approve(platform.contracts.StrategPortal!.address, "10000000");
-      let res = await lifiGetSameChainQuote(
-        CHAIN_ID,
-        USDT,
-        USDC,
-        platform.contracts.StrategPortal!.address,
-        "10000000" //10 USDT  => 10 USDC
-      );
-
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swap(
-          true,
-          true,
-          0,
-          res.estimate.approvalAddress,
-          this.vusdt.address,
-          this.vusdc.address,
-          10000000,
-          "0x",
-          res.transactionRequest!.data!
-        );
-      await tx.wait();
-
-      let vusdcBalance: BigNumber = await this.vusdc.balanceOf(
-        platform.signers.deployer.address
-      );
-      assert(vusdcBalance.gt(res.estimate.toAmountMin));
-    });
-
-    it("Execute vault to vault swap with permit", async function () {
-      const platform = <ILiFiPortalSwapRouter>this.platform;
-
-      let usdcVaultAmount = await this.vusdc.balanceOf(
-        platform.signers.deployer.address
-      );
-      let deadline = BigNumber.from(Date.now() + 3600);
-      let permitSig = await ILiFiPortalSwapRouter(
-        platform.signers.deployer,
-        this.vusdc,
-        platform.contracts.StrategPortal!.address,
-        usdcVaultAmount,
-        deadline,
-        { chainId: 1 }
-      );
-
-      const abiCoder = new ethers.utils.AbiCoder();
-      let permitParameters = abiCoder.encode(
-        ["tuple(uint256 deadline, uint8 v, bytes32 r, bytes32 s)"],
-        [
-          {
-            deadline,
-            v: permitSig.v,
-            r: permitSig.r,
-            s: permitSig.s,
-          },
-        ]
-      );
-
-      let res = await lifiGetSameChainQuote(
-        CHAIN_ID,
-        USDC,
-        USDT,
-        platform.contracts.StrategPortal!.address,
-        usdcVaultAmount //10 USDT  => 10 USDC
-      );
-
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swap(
-          true,
-          true,
-          0,
-          res.estimate.approvalAddress,
-          this.vusdc.address,
-          this.vusdt.address,
-          usdcVaultAmount,
-          permitParameters,
-          res.transactionRequest!.data!
-        );
-      await tx.wait();
-
-      let vusdtBalance: BigNumber = await this.vusdt.balanceOf(
-        platform.signers.deployer.address
-      );
-      assert(vusdtBalance.gt(res.estimate.toAmountMin));
-    }); */
   });
 
   /*   describe("Crosschain swaps", () => {
     it("Execute asset to asset swap", async function () {
-      const platform = <IStrategPlatform>this.platform;
+      const platform = <ITarsPlatform>this.platform;
 
       await this.usdt
         .connect(platform.signers.deployer)
-        .approve(platform.contracts.StrategPortal!.address, "100000000");
+        .approve(platform.contracts.TarsPortal!.address, "100000000");
 
       let res = await lifiGetCrossChainQuote(
         CHAIN_ID,
         OTHER_CHAIN_ID,
         USDT,
         OTHER_CHAIN_USDC,
-        platform.contracts.StrategPortal!.address,
+        platform.contracts.TarsPortal!.address,
         platform.signers.deployer.address,
         "100000000" //100 USDT  => 100 USDC
       );
 
       let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
+        .TarsPortal!.connect(platform.signers.deployer)
         .swapAndBridge(
-          false,
-          false,
           0,
           USDT,
           res.estimate.approvalAddress,
           USDC,
           100000000,
           OTHER_CHAIN_ID,
-          "0x",
           res.transactionRequest!.data!
         );
       await tx.wait();
     });
-
-    it("Execute vault to asset swap", async function () {
-      const platform = <IStrategPlatform>this.platform;
-
-      let res = await lifiGetCrossChainQuote(
-        CHAIN_ID,
-        OTHER_CHAIN_ID,
-        USDT,
-        OTHER_CHAIN_USDC,
-        platform.contracts.StrategPortal!.address,
-        platform.signers.deployer.address,
-        "100000000" //100 USDT  => 100 USDC
-      );
-
-      await this.usdt
-        .connect(platform.signers.deployer)
-        .approve(this.vusdt.address, res.estimate.fromAmount);
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .deposit(res.estimate.fromAmount, platform.signers.deployer.address);
-
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .approve(
-          platform.contracts.StrategPortal!.address,
-          res.estimate.fromAmount
-        );
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swapAndBridge(
-          true,
-          false,
-          0,
-          this.vusdt.address,
-          res.estimate.approvalAddress,
-          USDC,
-          res.estimate.fromAmount,
-          OTHER_CHAIN_ID,
-          "0x",
-          res.transactionRequest!.data!,
-          { value: res.transactionRequest!.value }
-        );
-      await tx.wait();
-    });
-
-    it("Execute vault to vault swap (sending)", async function () {
-      const platform = <IStrategPlatform>this.platform;
-
-      let res = await lifiGetCrossChainWithExecQuote(
-        CHAIN_ID,
-        OTHER_CHAIN_ID,
-        USDT,
-        OTHER_CHAIN_USDC,
-        platform.contracts.StrategPortal!.address,
-        platform.signers.deployer.address,
-        platform.contracts.StrategPortal!.address,
-        platform.contracts.StrategPortal!.address,
-        "100000000" //10 USDT  => 10 USDC
-      );
-
-      await this.usdt
-        .connect(platform.signers.deployer)
-        .approve(this.vusdt.address, res.estimate.fromAmount);
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .deposit(res.estimate.fromAmount, platform.signers.deployer.address);
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .approve(
-          platform.contracts.StrategPortal!.address,
-          res.estimate.fromAmount
-        );
-
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swapAndBridge(
-          true,
-          true,
-          0,
-          this.vusdt.address,
-          res.estimate.approvalAddress,
-          OTHER_CHAIN_USDC,
-          res.estimate.fromAmount,
-          OTHER_CHAIN_ID,
-          "0x",
-          res.transactionRequest!.data!,
-          { value: res.transactionRequest!.value }
-        );
-      await tx.wait();
-    });
-
-    it("Execute vault to vault swap with permit (sending)", async function () {
-      const platform = <IStrategPlatform>this.platform;
-
-      let res = await lifiGetCrossChainWithExecQuote(
-        CHAIN_ID,
-        OTHER_CHAIN_ID,
-        USDT,
-        OTHER_CHAIN_USDC,
-        platform.contracts.StrategPortal!.address,
-        platform.signers.deployer.address,
-        platform.contracts.StrategPortal!.address,
-        platform.contracts.StrategPortal!.address,
-        "100000000" //10 USDT  => 10 USDC
-      );
-
-      await this.usdt
-        .connect(platform.signers.deployer)
-        .approve(this.vusdt.address, res.estimate.fromAmount);
-      await this.vusdt
-        .connect(platform.signers.deployer)
-        .deposit(res.estimate.fromAmount, platform.signers.deployer.address);
-
-      let deadline = BigNumber.from(Date.now() + 3600);
-      let permitSig = await getPermitSignature(
-        platform.signers.deployer,
-        this.vusdt,
-        platform.contracts.StrategPortal!.address,
-        res.estimate.fromAmount,
-        deadline,
-        { chainId: 1 }
-      );
-
-      const abiCoder = new ethers.utils.AbiCoder();
-      let permitParameters = abiCoder.encode(
-        ["tuple(uint256 deadline, uint8 v, bytes32 r, bytes32 s)"],
-        [
-          {
-            deadline,
-            v: permitSig.v,
-            r: permitSig.r,
-            s: permitSig.s,
-          },
-        ]
-      );
-
-      let tx = await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .swapAndBridge(
-          true,
-          true,
-          0,
-          this.vusdt.address,
-          res.estimate.approvalAddress,
-
-          OTHER_CHAIN_USDC,
-          res.estimate.fromAmount,
-          OTHER_CHAIN_ID,
-          permitParameters,
-          res.transactionRequest!.data!,
-          { value: res.transactionRequest!.value }
-        );
-      await tx.wait();
-    });
-
-    it("Execute vault to vault swap (receive)", async function () {
-      const platform = <IStrategPlatform>this.platform;
-      await this.usdt
-        .connect(platform.signers.deployer)
-        .transfer(platform.contracts.StrategPortal!.address, "100000000");
-      await platform.contracts
-        .StrategPortal!.connect(platform.signers.deployer)
-        .lifiBridgeReceiver(
-          this.usdt.address,
-          platform.signers.user.address,
-          this.vusdt.address
-        );
-
-      let vusdtBalance = await this.vusdt.balanceOf(
-        platform.signers.user.address
-      );
-      assert(vusdtBalance.eq("100000000"));
-    });
   }); */
+
+  describe("Back and forth swap", () => {
+    it("Go around between the 2 chains", async function () {
+      const platform = <ITarsPlatform>this.platform;
+
+      // GET RES TO SWAP USDC TO USDT ON OTHER CHAIN
+
+      let resForOtherChain = await lifiGetCrossChainQuote(
+        OTHER_CHAIN_ID,
+        CHAIN_ID,
+        OTHER_CHAIN_USDC,
+        USDT,
+        platform.contracts.TarsPortal!.address,
+        platform.signers.deployer.address,
+        "80000000" //100 USDC  => 100 USDT
+      );
+      /* =======================  */
+      console.log(resForOtherChain);
+      console.log("=====================================================");
+
+      // BRIDGE USDC TO OTHER CHAIN WITH DATA PREVIOUSLY FETCHED
+
+      let res = await lifiGetCrossChainWithExecQuote(
+        CHAIN_ID,
+        OTHER_CHAIN_ID,
+        USDC,
+        OTHER_CHAIN_USDC,
+        platform.contracts.TarsPortal!.address,
+
+        platform.signers.deployer.address,
+
+        platform.contracts.TarsPortal!.address, // contract TARS A deployer sur Other Chain?
+        "90000000", //100 USDC  => 100 USDT
+        resForOtherChain.estimate.approvalAddress,
+        resForOtherChain.transactionRequest!.data!
+      );
+
+      console.log(res);
+
+      console.log("=====================================================");
+      await this.usdc
+        .connect(platform.signers.deployer)
+        .approve(platform.contracts.TarsPortal!.address, "100000000");
+      let tx = await platform.contracts
+        .TarsPortal!.connect(platform.signers.deployer)
+        .swapAndBridge(
+          0,
+          USDC,
+          res.estimate.approvalAddress,
+          OTHER_CHAIN_USDC,
+          100000000,
+          OTHER_CHAIN_ID, //Poly
+          res.transactionRequest!.data!
+        );
+      console.log(")))))))))))))))))", res.transactionRequest!.data!);
+
+      await tx.wait();
+
+      let usdcBalance: BigNumber = await this.usdc.balanceOf(
+        platform.signers.deployer.address
+      );
+
+      console.log(usdcBalance);
+      assert(usdcBalance.gt(res.estimate.toAmountMin));
+
+      this.beforeUSDCBalance = this.beforeUSDCBalance.add(
+        res.estimate.toAmountMin
+      );
+    });
+  });
 });
