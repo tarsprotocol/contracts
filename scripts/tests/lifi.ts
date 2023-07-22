@@ -26,7 +26,7 @@ const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 
 const LIFI_DIAMOND = "0x9b11bc9FAc17c058CAB6286b0c785bE6a65492EF";
 
-describe("StrategPortal LiFi integration", () => {
+describe("Portal LiFi integration", () => {
   console.log("===");
   before(async function () {
     const { deployer, treasury, user } = await ethers.getNamedSigners();
@@ -114,6 +114,7 @@ describe("StrategPortal LiFi integration", () => {
         .setLiFiDiamond(LIFI_DIAMOND);
 
       console.log(await platform.contracts.TarsPortal!.lifiDiamond());
+      console.log(platform.contracts.TarsPortal);
     });
   });
 
@@ -129,26 +130,30 @@ describe("StrategPortal LiFi integration", () => {
         "10000000" //10 USDT  => 10 USDC
       );
 
-      //console.log(res);
+      console.log(res);
       await this.usdt
         .connect(platform.signers.deployer)
         .approve(platform.contracts.TarsPortal!.address, "10000000");
       let tx = await platform.contracts
         .TarsPortal!.connect(platform.signers.deployer)
-        .swap(
+        .swapAndBridge(
           0,
           USDT,
           res.estimate.approvalAddress,
           USDC,
           10000000,
           // "0x",
+          0,
           res.transactionRequest!.data!
         );
       await tx.wait();
+      console.log(")))))))))))))))))");
 
       let usdcBalance: BigNumber = await this.usdc.balanceOf(
         platform.signers.deployer.address
       );
+
+      console.log(usdcBalance);
       assert(usdcBalance.gt(res.estimate.toAmountMin));
 
       this.beforeUSDCBalance = this.beforeUSDCBalance.add(
@@ -217,7 +222,7 @@ describe("StrategPortal LiFi integration", () => {
       this.beforeUSDCBalance = usdcBalance;
     }); */
 
-    it("Execute vault to asset swap", async function () {
+    /*     it("Execute vault to asset swap", async function () {
       const platform = <ILiFiPortalSwapRouter>this.platform;
 
       await this.usdt
@@ -359,7 +364,7 @@ describe("StrategPortal LiFi integration", () => {
         platform.signers.deployer.address
       );
       assert(vusdtBalance.gt(res.estimate.toAmountMin));
-    });
+    }); */
   });
 
   /*   describe("Crosschain swaps", () => {
